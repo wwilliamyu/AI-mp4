@@ -47,7 +47,9 @@ int main(int argc, char** argv) {
 		weight_vector.push_back(temp);
 	}
 	// AMOUNT OF TIMES TO RUN THROUGH TRAINING TO IMPROVE LEARNING
-	int epoch = 3;
+	int epoch;
+	cout << "What epoch would you like, William?" <<endl;
+	cin >> epoch;
 	double alpha = (double)1000 / (1000+epoch);
 
 	double laplace_k = 0.1; // set laplacian smoothing constants
@@ -284,6 +286,56 @@ int main(int argc, char** argv) {
 		}
 	}
 
+
+	//============================= TRAINING CURVE ===================================
+	int test_curve_accurate = 0;
+	int test_curve_inaccurate = 0;
+
+	for (int i = 0; i < training_images.size(); i++) {
+		vector<int> temp; // resulting 10 x 1 vector
+		for (int j = 0; j < 10; j++) {
+			temp.push_back(0);
+		}
+		// compare with weight vector, do matrix mult: 10 x 784 * 784 * 1
+		for (int m = 0; m < 10; m++) {
+			for (int n = 0; n < 1; n++) {
+				for (int x = 0; x < 28; x++) { // for each pixel
+					for (int y = 0; y < 28; y++) {
+						if (training_images[i].image_data[x][y] == '1'){
+							temp[m] = temp[m] + (weight_vector[m][x*28+y] * 1);
+						}
+						else {
+							temp[m] = temp[m] + (weight_vector[m][x*28+y] * 0);
+						}
+					}
+				}
+			}
+		}
+		int best_index = 0;
+		int best_value = -1000000;
+		// find index with highest value in result 10 x 1
+		for (int p = 0; p < 10; p++) {
+			if (temp[p] > best_value) {
+				best_value = temp[p];
+				best_index = p;
+			}
+			// will get index with highest value at end of these iterations
+		}
+
+		if (best_index == training_images[i].real_number) {
+			test_curve_accurate++;
+		}
+		else {
+			test_curve_inaccurate++;
+		}
+	}
+
+	cout << "TEST CURVE ACCURACY: " << ((double)test_curve_accurate/5000)*100.0<< "%" <<endl;
+	cout << "TEST CURVE INACCURATE: " << ((double)test_curve_inaccurate/5000)*100.0<< "%" <<endl;
+
+
+	//================================================================================
+
 	cout << "Total # tests: " << testing_images.size() << endl;
 	cout << "Accurate: " << accurate <<endl;
 	cout << "Inaccurate: " << inaccurate << endl;
@@ -292,11 +344,8 @@ int main(int argc, char** argv) {
 	for (int g = 0; g < 10; g++) {
 		cout << "Accuracy for " << g << " is: " << (double)test_digits[g]/testing_nums[g]*100.0 << "%" << endl;
 	}
-	
-	// classification matrix
-	//10x10 matrix whose entry in row r and column c 
-	// is the percentage of test images from class r that are classified as class c
-	// e.g. if 9 mistaken as 7, would add to (9, 7)
+
+	// Confusion matrix
 	cout << "Confusion Matrix" <<endl;
 	for (int i = 0; i < 10; i++) {
 		cout << "   ";
